@@ -42,8 +42,8 @@ A high-performance URL shortening service built with Spring Boot that provides s
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd ait
+git clone https://github.com/iman-khaeruddin/shorten-url.git
+cd shorten-url
 ```
 
 2. Start all services:
@@ -59,7 +59,7 @@ docker-compose up -d
 ```bash
 # MySQL
 docker run -d --name mysql \
-  -e MYSQL_ROOT_PASSWORD=@b3sm4Rt \
+  -e MYSQL_ROOT_PASSWORD=PUT_YOUR_PASSWORD_HERE \
   -e MYSQL_DATABASE=url_shortener \
   -p 3306:3306 mysql:8.0
 
@@ -233,7 +233,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/url_shortener
     username: root
-    password: '@b3sm4Rt'
+    password: PUT_YOUR_PASSWORD_HERE
   
   redis:
     host: localhost
