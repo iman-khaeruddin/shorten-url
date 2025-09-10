@@ -20,5 +20,4 @@ public class ClickEvent {
     private Instant clickedAt;
     private String ip;
     private String userAgent;
-    private String referrer;
 }
