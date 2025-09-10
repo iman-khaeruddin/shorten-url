@@ -74,7 +74,6 @@ public class UrlService {
                 .clickedAt(Instant.now())
                 .ip(ip)
                 .userAgent(ua)
-                .referrer(referrer)
                 .build();
         clickEventRepository.save(e);
     }
