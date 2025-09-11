@@ -174,6 +174,74 @@ curl http://localhost:8080/api/analytics/google-search/clicks
 
 ## 🧪 Testing
 
+### Running tests
+
+- Run all tests (unit + integration):
+```bash
+./mvnw test
+```
+Note: running the full suite may require dependencies (e.g., Redis/MySQL). If you use Docker, start services first:
+```bash
+docker-compose up -d
+./mvnw test
+```
+
+- Run only fast unit tests (no external services required):
+```bash
+./mvnw test -Dtest="Base62Test,UrlServiceTest,UrlControllerTest"
+```
+
+- Run a single test class:
+```bash
+./mvnw test -Dtest=UrlServiceTest
+```
+
+- Run tests by method name pattern:
+```bash
+./mvnw test -Dtest=UrlServiceTest#createShortUrl_*
+```
+
+- Run integration tests only:
+```bash
+./mvnw test -Dtest=UrlShortenerIntegrationTest
+```
+(Uses H2 in-memory DB and disables Redis cache via test properties.)
+
+- Run rate limiting tests (requires Redis on localhost:6379):
+```bash
+# If you use Docker
+docker-compose up -d redis
+./mvnw test -Dtest=RateLimitInterceptorTest
+```
+
+- Skip rate limiting tests if Redis is not available:
+```bash
+./mvnw test -Dtest="Base62Test,UrlServiceTest,UrlControllerTest,UrlShortenerIntegrationTest"
+```
+
+- Generate test reports: Maven Surefire stores reports at `target/surefire-reports/`.
+
+### Quick Test Examples
+
+**🚀 Fast unit tests (no dependencies needed):**
+```bash
+# Run Base62 utility tests (17 tests)
+./mvnw test -Dtest=Base62Test
+
+# Run core unit tests without external services
+./mvnw test -Dtest="Base62Test,UrlServiceTest,UrlControllerTest"
+```
+
+**🔧 Integration tests with Docker:**
+```bash
+# Start dependencies and run all tests
+docker-compose up -d
+./mvnw test
+
+# Run just integration tests (uses H2, no Redis cache)
+./mvnw test -Dtest=UrlShortenerIntegrationTest
+```
+
 ### Manual Testing with cURL
 
 1. **Create a short URL**:
@@ -211,10 +279,73 @@ chmod +x test_rate_limit.sh
 
 This script tests the rate limiting feature (30 requests per 60 seconds).
 
-### Unit Tests
+### Test Structure
+
+This project has comprehensive test coverage:
+
+- **Unit Tests**: 
+  - `Base62Test` - Utility class tests (17 tests)
+  - `UrlServiceTest` - Service layer tests (11 tests)
+  - `UrlControllerTest` - Controller layer tests (15 tests)
+
+- **Integration Tests**:
+  - `UrlShortenerIntegrationTest` - End-to-end flow tests (11 tests)
+  - `RateLimitInterceptorTest` - Rate limiting functionality tests (8 tests)
+
+Total: **62 tests** covering all major functionality and edge cases.
+
+## 📊 Test Coverage Reports
+
+This project uses **JaCoCo** (Java Code Coverage) to generate detailed test coverage reports.
+
+### Generating Coverage Reports
+
+**🚀 Quick coverage report (unit tests only):**
+```bash
+# Run unit tests and generate coverage
+./mvnw clean test -Dtest="Base62Test" jacoco:report
+
+# Open coverage report in browser
+open target/site/jacoco/index.html
+```
+
+**🔧 Full coverage report (all tests):**
+```bash
+# With Docker services running
+docker-compose up -d
+./mvnw clean test jacoco:report
+
+# Without external dependencies (unit + integration tests)
+./mvnw clean test -Dtest="Base62Test,UrlServiceTest,UrlControllerTest,UrlShortenerIntegrationTest" jacoco:report
+```
+
+### Coverage Thresholds
+
+The project is configured with minimum coverage thresholds:
+- **Line Coverage**: 70% minimum
+- **Branch Coverage**: 60% minimum
+
+### Coverage Commands Reference
 
 ```bash
-./mvnw test
+# Generate report only (after tests have run)
+./mvnw jacoco:report
+
+# Check coverage thresholds (will fail build if below minimum)
+./mvnw jacoco:check
+
+# Clean and regenerate everything
+./mvnw clean compile test jacoco:report
+
+# View coverage summary in terminal
+cat target/site/jacoco/jacoco.csv
+
+# Use the coverage summary script (recommended)
+./scripts/coverage-summary.sh
+
+# Generate coverage for specific test types
+./mvnw clean test -Dtest="*Test" jacoco:report          # All unit tests
+./mvnw clean test -Dtest="*IntegrationTest" jacoco:report # Integration tests only
 ```
 
 ## ⚙️ Configuration
@@ -246,23 +377,6 @@ spring:
       time-to-live: 600000                 # 10 minutes cache TTL
 ```
 
-## 🐳 Docker Support
-
-### Build Docker Image
-```bash
-docker build -t url-shortener .
-```
-
-### Run with Docker Compose
-```bash
-docker-compose up -d
-```
-
-### Stop Services
-```bash
-docker-compose down
-```
-
 ## 📊 Rate Limiting
 
 The API implements rate limiting with the following defaults:
@@ -287,31 +401,3 @@ The application automatically creates the following tables:
 - Rate limiting by IP address
 - Expiration date validation
 - Custom alias conflict detection
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **MySQL Connection Issues**:
-   - Ensure MySQL is running on port 3306
-   - Check username/password in `application.yml`
-   - Verify database `url_shortener` exists
-
-2. **Redis Connection Issues**:
-   - Ensure Redis is running on port 6379
-   - Check Redis host configuration
-
-3. **Port Already in Use**:
-   - Change server port in `application.yml`
-   - Or stop the process using port 8080
-
-### Logs
-
-Check application logs for detailed error information:
-```bash
-# If running with Docker Compose
-docker-compose logs app
-
-# If running locally
-# Logs will appear in the console
-```
