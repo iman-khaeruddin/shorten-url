@@ -51,7 +51,7 @@ public class UrlService {
             return urlMappingRepository.save(mapping);
         }
 
-        // Save temporary mapping to get ID
+        // Save url mapping
         UrlMapping saved = UrlMapping.builder()
                 .longUrl(longUrl)
                 .createdAt(Instant.now())
